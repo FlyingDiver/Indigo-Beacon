@@ -7,8 +7,8 @@ import threading
 from urllib.parse import parse_qs
 
 import simplejson as json
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-from SocketServer import ThreadingMixIn
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from socketserver import ThreadingMixIn
 
 
 def updateVar(name, value):
