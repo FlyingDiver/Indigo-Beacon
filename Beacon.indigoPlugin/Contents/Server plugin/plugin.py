@@ -4,7 +4,7 @@
 import cgi
 import fnmatch
 import threading
-from cgi import parse_qs
+from urllib.parse import parse_qs
 
 import simplejson as json
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
