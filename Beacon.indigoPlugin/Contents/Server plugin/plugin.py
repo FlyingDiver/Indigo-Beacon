@@ -214,8 +214,7 @@ class Plugin(indigo.PluginBase):
                     self.deviceUpdate(self.deviceList[b]['ref'], deviceAddress, event)
                     foundDevice = True
         if not foundDevice:
-            self.logger.debug("No device found")
-            indigo.server.log(f"Received {event} from {deviceAddress} but no corresponding device exists", isError=True)
+            self.logger.warning(f"Received {event} from {deviceAddress} but no corresponding device exists")
             if self.createDevice:
                 newdev = self.deviceCreate(sender, location)
                 self.deviceUpdate(self.deviceList[newdev]['ref'], deviceAddress, event)
@@ -243,12 +242,12 @@ class Plugin(indigo.PluginBase):
                     if (p[self.customAction] == self.customEnter) or (p[self.customAction] == self.customExit):
                         self.parseResult(p[self.customSender], p[self.customLocation], p[self.customAction])
                     else:
-                        indigo.server.log("Received Custom data, but value of Action parameter wasn't recognised", isError=True)
+                        self.logger.error("Received Custom data, but value of Action parameter wasn't recognised")
                     return
 
             # Locative or Geofancy
             if ('Geofancy' in uagent) or ('Locative' in uagent):
-                self.logger.debug(u"Recognised Locative/Geofancy")
+                self.logger.debug("Recognised Locative/Geofancy")
                 if self.geofancy:
                     if ctype == 'application/x-www-form-urlencoded; charset=utf-8':
                         p = {}
@@ -257,26 +256,35 @@ class Plugin(indigo.PluginBase):
                         if all((name in p) for name in ('device', 'id', 'trigger')):
                             self.parseResult(p["device"], p["id"], p["trigger"])
                         else:
-                            indigo.server.log("Received Locative/Geofancy data, but one or more parameters are missing", isError=True)
+                            self.logger.error("Received Locative/Geofancy data, but one or more parameters are missing")
                     else:
-                        indigo.server.log(f"Recognised Locative/Geofancy, but received data was wrong content-type: {ctype}", isError=True)
+                        self.logger.error(f"Recognised Locative/Geofancy, but received data was wrong content-type: {ctype}")
                 else:
-                    indigo.server.log("Received Locative/Geofancy data, but Locative/Geofancy is disabled in plugin config")
+                    self.logger.warning("Received Locative/Geofancy data, but Locative/Geofancy is disabled in plugin config")
 
             # Geofency
             elif 'Geofency' in uagent:
-                self.logger.debug(u"Recognised Geofency")
+                self.logger.debug("Recognised Geofency")
                 if self.geofency:
-                    if ctype == 'application/json':
-                        p = json.loads(data)
+                    if ctype == 'application/x-www-form-urlencoded':
+                        p = {}
+                        for key, value in action_props['body_params'].items():
+                            p.update({key: value})
                         if all((name in p) for name in ('name', 'entry', 'device')):
                             self.parseResult(p["device"], p["name"], p["entry"])
                         else:
-                            indigo.server.log(u"Received Geofency data, but one or more parameters are missing", isError=True)
+                            self.logger.error(u"Received Geofency data, but one or more parameters are missing")
+                    elif ctype == 'application/json':
+                        p = json.loads(action_props['request_body'])
+                        if all((name in p) for name in ('name', 'entry', 'device')):
+                            self.parseResult(p["device"], p["name"], p["entry"])
+                        else:
+                            self.logger.error(u"Received Geofency data, but one or more parameters are missing")
                     else:
-                        indigo.server.log(f"Recognised Geofency, but received data was wrong content-type: {ctype}", isError=True)
+                        self.logger.error(f"Recognised Geofency, but received data was wrong content-type: {ctype}")
                 else:
-                    indigo.server.log(u"Received Geofency data, but Geofency is disabled in plugin config")
+                    self.logger.warning(u"Received Geofency data, but Geofency is disabled in plugin config")
+
             # Beecon
             elif 'Beecon' in uagent:
                 self.logger.debug("Recognised Beecon")
@@ -288,9 +296,10 @@ class Plugin(indigo.PluginBase):
                     if all((name in p) for name in ('region', 'action')):
                         self.parseResult("Beecon", p["region"], p["action"])
                     else:
-                        indigo.server.log(u"Received Beecon data, but one or more parameters are missing", isError=True)
+                        self.logger.error(u"Received Beecon data, but one or more parameters are missing")
                 else:
-                    indigo.server.log(u"Received Beecon data, but Beecon is disabled in plugin config")
+                    self.logger.warning(u"Received Beecon data, but Beecon is disabled in plugin config")
+
             # Geohopper
             elif ctype == 'application/json':
                 self.logger.debug(u"Received JSON data (possible Geohopper)")
@@ -299,12 +308,12 @@ class Plugin(indigo.PluginBase):
                     if all((name in p) for name in ('sender', 'location', 'event')):
                         self.parseResult(p["sender"], p["location"], p["event"])
                     else:
-                        indigo.server.log(u"Received Geohopper data, but one or more parameters are missing", isError=True)
+                        self.logger.error(u"Received Geohopper data, but one or more parameters are missing")
                 else:
-                    indigo.server.log(u"Received Geohopper data, but Geohopper is disabled in plugin config")
+                    self.logger.warning(u"Received Geohopper data, but Geohopper is disabled in plugin config")
             else:
-                indigo.server.log(f"Didn't recognise received data. (User-agent: {uagent}, Content-type: {ctype})", isError=True)
+                self.logger.error(f"Didn't recognise received data. (User-agent: {uagent}, Content-type: {ctype})")
         except Exception as e:
-            indigo.server.log(f"Exception: {e}", isError=True)
+            self.logger.error(f"Exception: {e}", exc_info=True)
             pass
 
