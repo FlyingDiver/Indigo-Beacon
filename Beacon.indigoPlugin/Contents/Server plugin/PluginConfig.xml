@@ -5,13 +5,14 @@
     <Field id="autoLabel1" type="label"> 
         <Label>Beacon can receive HTTP updates from multiple sources. It's primarily designed for Geohopper, Geofancy and Beecon.</Label>
     </Field>
+   <Field id="reflector_api_key" type="textfield">
+        <Label>Reflector REST API key:</Label>
+    </Field>
+   <Field id="reflector_Note" type="label" fontSize="small" fontColor="darkgray">
+        <Label>See https://www.indigodomo.com/account/authorizations</Label>
+    </Field>
 
     <Field id="simpleSeparator1" type="separator"/>
-
-    <Field id="listenPort" type="textfield" readonly="NO" defaultValue="6192">
-            <Label>TCP port:</Label>
-            <Description>Listen port for the HTTP server</Description>
-    </Field>
     
     <Field type="checkbox" id="createDevice" defaultValue="true">
     	<Label>Create device</Label>
