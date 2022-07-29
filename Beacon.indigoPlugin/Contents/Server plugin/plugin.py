@@ -289,10 +289,7 @@ class Plugin(indigo.PluginBase):
             elif 'Beecon' in uagent:
                 self.logger.debug("Recognised Beecon")
                 if self.beecon:
-                    pdata = parse_qs(data)
-                    p = {}
-                    for key, value in pdata.iteritems():
-                        p.update({key: value[0]})
+                    p = json.loads(action_props['request_body'])
                     if all((name in p) for name in ('region', 'action')):
                         self.parseResult("Beecon", p["region"], p["action"])
                     else:
@@ -304,7 +301,7 @@ class Plugin(indigo.PluginBase):
             elif ctype == 'application/json':
                 self.logger.debug(u"Received JSON data (possible Geohopper)")
                 if self.geohopper:
-                    p = json.loads(data)
+                    p = json.loads(action_props['request_body'])
                     if all((name in p) for name in ('sender', 'location', 'event')):
                         self.parseResult(p["sender"], p["location"], p["event"])
                     else:
